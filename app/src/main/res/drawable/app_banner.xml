@@ -1,0 +1,34 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path
+        android:pathData="M0,0h320v180h-320z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="320"
+                android:endY="180"
+                android:type="linear">
+                <item android:offset="0" android:color="#FF080C14"/>
+                <item android:offset="0.5" android:color="#FF111B2C"/>
+                <item android:offset="1" android:color="#FF080C14"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- TV icon frame -->
+    <path
+        android:fillColor="#333D9BE9"
+        android:pathData="M160,50m-35,0a35,35 0,1 1,70 0a35,35 0,1 1,-70 0"/>
+    <path
+        android:fillColor="#FF3D9BE9"
+        android:pathData="M168,50l-12,-7v14z"/>
+    <!-- Glass bar accent -->
+    <path
+        android:fillColor="#26FFFFFF"
+        android:pathData="M40,110h240v24h-240z"/>
+</vector>
+
