@@ -1,0 +1,3 @@
+- New Ultra Glass TV branding badge on Home screen
+- ExoPlayer 1.4 streaming engine performance enhancements
+- Automated in-app OTA updater live verification

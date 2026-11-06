@@ -1,0 +1,27 @@
+Categories:
+  - Video
+  - Multimedia
+License: MIT
+AuthorName: Manvith G K
+SourceCode: https://github.com/manvithgkacharya/LiquidTV
+IssueTracker: https://github.com/manvithgkacharya/LiquidTV/issues
+Changelog: https://github.com/manvithgkacharya/LiquidTV/releases
+
+AutoName: LIQUID TV
+Summary: Modern Liquid Glass IPTV streaming client for Android TV
+
+RepoType: git
+Repo: https://github.com/manvithgkacharya/LiquidTV.git
+
+Builds:
+  - versionName: 1.0.2
+    versionCode: 3
+    commit: v1.0.2
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.2
+CurrentVersionCode: 3

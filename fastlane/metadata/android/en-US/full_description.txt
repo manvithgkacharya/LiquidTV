@@ -1,0 +1,12 @@
+LIQUID TV is an ultra-modern, open-source live TV and IPTV streaming client designed specifically for Android TV, Google TV, and Fire TV devices.
+
+Features:
+• Liquid Glass UI: Real-time frosted glass cards with specular highlights and smooth focus animations.
+• ExoPlayer Media3 Streaming: Low-latency HLS (.m3u8), TS, and MPD live stream playback.
+• 100% D-pad Navigation: Designed strictly for 10-foot TV remote control.
+• Smart Channel Organization: Filter broadcast channels by Categories, Countries, and Languages.
+• Favorites & History: Quick access to favorite channels and Continue Watching right on the Home screen.
+• Built-in In-App Updater: Automatic GitHub release detection and one-click package installation.
+
+Public Stream Attribution:
+LIQUID TV uses community-curated playlists from iptv-org/iptv. Users can also configure any custom M3U/M3U8 playlist in Settings. LIQUID TV is an open-source media player and does not host or broadcast any media content.
