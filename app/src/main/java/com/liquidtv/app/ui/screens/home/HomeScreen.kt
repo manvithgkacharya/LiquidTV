@@ -223,7 +223,7 @@ private fun HomeHeader(
                     ),
                 )
                 Text(
-                    text = "✨ v1.0.1 • Ultra Stream",
+                    text = "✨ v1.0.2 • Ultra Glass TV",
                     style = LiquidTypography.LabelSmall,
                     color = LiquidColors.AccentBlue.copy(alpha = 0.7f),
                 )
