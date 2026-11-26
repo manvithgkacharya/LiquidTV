@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.liquidtv.app.BuildConfig
 import com.liquidtv.app.ui.components.LiquidGlassSurface
-import com.liquidtv.app.ui.theme.LiquidColors
+import com.liquidtv.app.ui.theme.AppTheme
 import com.liquidtv.app.ui.theme.LiquidTypography
 
 /**
@@ -49,6 +49,7 @@ fun GlassUpdateDialog(
     modifier: Modifier = Modifier,
 ) {
     val isVisible = updateState !is UpdateState.Idle && updateState !is UpdateState.UpToDate
+    val colors = AppTheme.colors
 
     AnimatedVisibility(
         visible = isVisible,
@@ -58,7 +59,7 @@ fun GlassUpdateDialog(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.70f)),
+                .background(colors.dialogScrim),
             contentAlignment = Alignment.Center,
         ) {
             when (updateState) {
@@ -99,6 +100,7 @@ private fun UpdateAvailableContent(
     onUpdateClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val colors = AppTheme.colors
     val updateButtonRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         try { updateButtonRequester.requestFocus() } catch (_: Exception) {}
@@ -106,11 +108,14 @@ private fun UpdateAvailableContent(
 
     LiquidGlassSurface(
         modifier = Modifier
-            .width(520.dp)
-            .wrapContentHeight(),
+            .padding(horizontal = 20.dp)
+            .widthIn(max = 500.dp)
+            .fillMaxWidth(),
         cornerRadius = 24.dp,
-        glassAlpha = 0.35f,
-        borderAlpha = 0.45f,
+        glassColor = colors.panel,
+        glassAlpha = 0.95f,
+        borderColor = colors.border,
+        borderAlpha = 0.75f,
     ) {
         Column(
             modifier = Modifier
@@ -119,14 +124,13 @@ private fun UpdateAvailableContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            // Icon with glowing halo
             Box(contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier
                         .size(64.dp)
                         .background(
                             Brush.radialGradient(
-                                listOf(LiquidColors.AccentBlue.copy(alpha = 0.4f), Color.Transparent)
+                                listOf(colors.accent.copy(alpha = 0.35f), Color.Transparent)
                             ),
                             CircleShape,
                         ),
@@ -136,7 +140,7 @@ private fun UpdateAvailableContent(
                         .size(48.dp)
                         .background(
                             Brush.linearGradient(
-                                listOf(LiquidColors.AccentBlue, LiquidColors.AccentViolet)
+                                listOf(colors.accent, colors.waveTwo)
                             ),
                             CircleShape,
                         ),
@@ -145,19 +149,18 @@ private fun UpdateAvailableContent(
                     Icon(
                         imageVector = Icons.Filled.SystemUpdate,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = colors.onAccent,
                         modifier = Modifier.size(26.dp),
                     )
                 }
             }
 
-            // Title & Version Chip
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = "New Update Available!",
+                    text = "تحديث جديد متاح!",
                     style = LiquidTypography.HeadlineSmall.copy(
                         brush = Brush.linearGradient(
-                            listOf(LiquidColors.TextPrimary, LiquidColors.AccentBlueLight)
+                            listOf(colors.text, colors.accentText)
                         )
                     ),
                 )
@@ -167,66 +170,72 @@ private fun UpdateAvailableContent(
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(50))
+                            .background(colors.surface, RoundedCornerShape(50))
+                            .border(1.dp, colors.border.copy(alpha = 0.6f), RoundedCornerShape(50))
                             .padding(horizontal = 10.dp, vertical = 3.dp),
                     ) {
                         Text(
-                            text = "Current: v${BuildConfig.VERSION_NAME}",
+                            text = "الحالي: v${BuildConfig.VERSION_NAME}",
                             style = LiquidTypography.LabelSmall,
-                            color = LiquidColors.TextTertiary,
+                            color = colors.muted,
                         )
                     }
-                    Text("→", style = LiquidTypography.LabelSmall, color = LiquidColors.AccentBlue)
+                    Text("←", style = LiquidTypography.LabelSmall, color = colors.accentText)
                     Box(
                         modifier = Modifier
-                            .background(LiquidColors.AccentBlue.copy(alpha = 0.25f), RoundedCornerShape(50))
-                            .border(1.dp, LiquidColors.AccentBlue.copy(alpha = 0.6f), RoundedCornerShape(50))
+                            .background(colors.accent.copy(alpha = 0.20f), RoundedCornerShape(50))
+                            .border(1.dp, colors.accent.copy(alpha = 0.65f), RoundedCornerShape(50))
                             .padding(horizontal = 10.dp, vertical = 3.dp),
                     ) {
                         Text(
-                            text = "New: v${info.versionName}",
+                            text = "الجديد: v${info.versionName}",
                             style = LiquidTypography.LabelSmall,
-                            color = LiquidColors.AccentBlueLight,
+                            color = colors.accentText,
                         )
                     }
                 }
             }
 
-            // Release Notes Box
             if (info.releaseNotes.isNotBlank()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 130.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(LiquidColors.GlassTertiary)
-                        .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
+                        .background(colors.surface)
+                        .border(1.dp, colors.border.copy(alpha = 0.55f), RoundedCornerShape(14.dp))
                         .padding(14.dp)
                         .verticalScroll(rememberScrollState()),
                 ) {
                     Text(
                         text = info.releaseNotes,
                         style = LiquidTypography.BodySmall,
-                        color = LiquidColors.TextSecondary,
+                        color = colors.textSecondary,
                     )
                 }
             }
 
-            // Action Buttons
+            if (info.isMandatory) {
+                Text(
+                    text = "تحديث إجباري مطلوب لمواصلة استخدام المزايا المدعومة",
+                    style = LiquidTypography.LabelMedium,
+                    color = colors.danger,
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                // Later button
+                if (!info.isMandatory) {
+                    DialogButton(
+                        text = "لاحقاً",
+                        isPrimary = false,
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
                 DialogButton(
-                    text = "Later",
-                    isPrimary = false,
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
-                )
-                // Update Now button
-                DialogButton(
-                    text = "Update Now",
+                    text = "تحديث الآن",
                     isPrimary = true,
                     onClick = onUpdateClick,
                     focusRequester = updateButtonRequester,
@@ -242,11 +251,17 @@ private fun DownloadingContent(
     state: UpdateState.Downloading,
     onCancel: () -> Unit,
 ) {
+    val colors = AppTheme.colors
     LiquidGlassSurface(
-        modifier = Modifier.width(480.dp),
+        modifier = Modifier
+            .padding(horizontal = 20.dp)
+            .widthIn(max = 460.dp)
+            .fillMaxWidth(),
         cornerRadius = 24.dp,
-        glassAlpha = 0.35f,
-        borderAlpha = 0.45f,
+        glassColor = colors.panel,
+        glassAlpha = 0.95f,
+        borderColor = colors.border,
+        borderAlpha = 0.75f,
     ) {
         Column(
             modifier = Modifier.padding(28.dp),
@@ -256,49 +271,47 @@ private fun DownloadingContent(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(LiquidColors.AccentBlue.copy(alpha = 0.2f), CircleShape),
+                    .background(colors.accent.copy(alpha = 0.18f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Filled.CloudDownload,
                     contentDescription = null,
-                    tint = LiquidColors.AccentBlue,
+                    tint = colors.accent,
                     modifier = Modifier.size(26.dp),
                 )
             }
 
             Text(
-                text = "Downloading Update...",
+                text = "جارٍ تنزيل التحديث...",
                 style = LiquidTypography.TitleMedium,
-                color = LiquidColors.TextPrimary,
+                color = colors.text,
             )
 
-            // Progress bar
             LinearProgressIndicator(
                 progress = { state.progress },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
-                color = LiquidColors.AccentBlue,
-                trackColor = Color.White.copy(alpha = 0.15f),
+                color = colors.accent,
+                trackColor = colors.surface,
             )
 
-            // Progress text
             val pct = (state.progress * 100).toInt()
-            val dlMb = String.format("%.1f", state.downloadedBytes / (1024f * 1024f))
-            val totalMb = if (state.totalBytes > 0) String.format("%.1f", state.totalBytes / (1024f * 1024f)) else "?"
+            val dlMb = String.format(java.util.Locale.US, "%.1f", state.downloadedBytes / (1024f * 1024f))
+            val totalMb = if (state.totalBytes > 0) String.format(java.util.Locale.US, "%.1f", state.totalBytes / (1024f * 1024f)) else "؟"
             Text(
-                text = "$pct% ($dlMb MB / $totalMb MB)",
+                text = "$pct% ($dlMb م.ب / $totalMb م.ب)",
                 style = LiquidTypography.LabelSmall,
-                color = LiquidColors.TextSecondary,
+                color = colors.textSecondary,
             )
 
             DialogButton(
-                text = "Cancel",
+                text = "إلغاء",
                 isPrimary = false,
                 onClick = onCancel,
-                modifier = Modifier.fillMaxWidth(0.5f),
+                modifier = Modifier.fillMaxWidth(0.55f),
             )
         }
     }
@@ -309,27 +322,33 @@ private fun ReadyToInstallContent(
     onInstallClick: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val colors = AppTheme.colors
     LiquidGlassSurface(
-        modifier = Modifier.width(480.dp),
+        modifier = Modifier
+            .padding(horizontal = 20.dp)
+            .widthIn(max = 460.dp)
+            .fillMaxWidth(),
         cornerRadius = 24.dp,
-        glassAlpha = 0.35f,
-        borderAlpha = 0.45f,
+        glassColor = colors.panel,
+        glassAlpha = 0.95f,
+        borderColor = colors.border,
+        borderAlpha = 0.75f,
     ) {
         Column(
             modifier = Modifier.padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Icon(Icons.Filled.SystemUpdate, null, tint = LiquidColors.SuccessGreen, modifier = Modifier.size(40.dp))
-            Text("Update Downloaded!", style = LiquidTypography.TitleMedium, color = LiquidColors.TextPrimary)
+            Icon(Icons.Filled.SystemUpdate, null, tint = colors.success, modifier = Modifier.size(40.dp))
+            Text("التحديث جاهز للتثبيت!", style = LiquidTypography.TitleMedium, color = colors.text)
             Text(
-                "The update has finished downloading and is ready to install.",
+                "اكتمل تنزيل التحديث بنجاح وهو جاهز الآن للتثبيت.",
                 style = LiquidTypography.BodySmall,
-                color = LiquidColors.TextSecondary,
+                color = colors.textSecondary,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DialogButton("Dismiss", isPrimary = false, onClick = onDismiss, modifier = Modifier.weight(1f))
-                DialogButton("Install Now", isPrimary = true, onClick = onInstallClick, modifier = Modifier.weight(1f))
+                DialogButton("إغلاق", isPrimary = false, onClick = onDismiss, modifier = Modifier.weight(1f))
+                DialogButton("تثبيت الآن", isPrimary = true, onClick = onInstallClick, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -340,21 +359,27 @@ private fun ErrorContent(
     message: String,
     onDismiss: () -> Unit,
 ) {
+    val colors = AppTheme.colors
     LiquidGlassSurface(
-        modifier = Modifier.width(480.dp),
+        modifier = Modifier
+            .padding(horizontal = 20.dp)
+            .widthIn(max = 460.dp)
+            .fillMaxWidth(),
         cornerRadius = 24.dp,
-        glassAlpha = 0.35f,
-        borderAlpha = 0.45f,
+        glassColor = colors.panel,
+        glassAlpha = 0.95f,
+        borderColor = colors.border,
+        borderAlpha = 0.75f,
     ) {
         Column(
             modifier = Modifier.padding(28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Icon(Icons.Filled.ErrorOutline, null, tint = LiquidColors.ErrorRed, modifier = Modifier.size(40.dp))
-            Text("Update Check", style = LiquidTypography.TitleMedium, color = LiquidColors.TextPrimary)
-            Text(message, style = LiquidTypography.BodySmall, color = LiquidColors.TextSecondary)
-            DialogButton("Dismiss", isPrimary = false, onClick = onDismiss, modifier = Modifier.fillMaxWidth(0.5f))
+            Icon(Icons.Filled.ErrorOutline, null, tint = colors.danger, modifier = Modifier.size(40.dp))
+            Text("التحقق من التحديثات", style = LiquidTypography.TitleMedium, color = colors.text)
+            Text(message, style = LiquidTypography.BodySmall, color = colors.textSecondary)
+            DialogButton("إغلاق", isPrimary = false, onClick = onDismiss, modifier = Modifier.fillMaxWidth(0.55f))
         }
     }
 }
@@ -367,6 +392,7 @@ private fun DialogButton(
     focusRequester: FocusRequester? = null,
     modifier: Modifier = Modifier,
 ) {
+    val colors = AppTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
 
@@ -386,22 +412,18 @@ private fun DialogButton(
             .then(
                 if (isPrimary) {
                     Modifier
-                        .background(
-                            Brush.linearGradient(
-                                listOf(LiquidColors.AccentBlue, LiquidColors.AccentViolet)
-                            )
-                        )
+                        .background(Brush.linearGradient(listOf(colors.accent, colors.waveTwo)))
                         .border(
                             if (isFocused) 2.5.dp else 1.dp,
-                            if (isFocused) Color.White else Color.White.copy(alpha = 0.35f),
+                            if (isFocused) colors.focus else colors.accent.copy(alpha = 0.7f),
                             RoundedCornerShape(50),
                         )
                 } else {
                     Modifier
-                        .background(Color.White.copy(alpha = if (isFocused) 0.22f else 0.10f))
+                        .background(if (isFocused) colors.selected else colors.surface)
                         .border(
                             if (isFocused) 2.dp else 1.dp,
-                            if (isFocused) LiquidColors.AccentBlue else Color.White.copy(alpha = 0.20f),
+                            if (isFocused) colors.focus else colors.border,
                             RoundedCornerShape(50),
                         )
                 }
@@ -412,7 +434,7 @@ private fun DialogButton(
         Text(
             text = text,
             style = LiquidTypography.LabelLarge,
-            color = Color.White,
+            color = if (isPrimary) colors.onAccent else colors.text,
         )
     }
 }

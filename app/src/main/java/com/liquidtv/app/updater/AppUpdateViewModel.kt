@@ -54,8 +54,9 @@ class AppUpdateViewModel @Inject constructor(
                     _updateState.value = UpdateState.UpToDate
                 }
             } else {
-                val msg = result.exceptionOrNull()?.message ?: "Check failed"
-                _updateState.value = UpdateState.Error(msg)
+                val raw = result.exceptionOrNull()
+                runCatching { android.util.Log.w("AppUpdateViewModel", "checkForUpdate failed", raw) }
+                _updateState.value = UpdateState.Error("تعذّر التحقق من التحديثات حالياً، يرجى المحاولة لاحقاً.")
             }
         }
     }
@@ -74,8 +75,9 @@ class AppUpdateViewModel @Inject constructor(
                 // Trigger installation prompt immediately
                 installCurrentUpdate()
             } else {
-                val errorMsg = result.exceptionOrNull()?.message ?: "Download failed"
-                _updateState.value = UpdateState.Error(errorMsg)
+                val raw = result.exceptionOrNull()
+                runCatching { android.util.Log.w("AppUpdateViewModel", "downloadUpdate failed", raw) }
+                _updateState.value = UpdateState.Error("فشل تحميل التحديث حالياً، يرجى المحاولة لاحقاً.")
             }
         }
     }
@@ -84,13 +86,24 @@ class AppUpdateViewModel @Inject constructor(
         val file = downloadedApkFile ?: return
         val result = appUpdateManager.installUpdate(file)
         if (result.isFailure) {
-            val msg = result.exceptionOrNull()?.message ?: "Installation failed"
+            val raw = result.exceptionOrNull()
+            runCatching { android.util.Log.w("AppUpdateViewModel", "installUpdate failed", raw) }
+            val msg = raw?.message?.takeIf { !it.contains("HTTP", ignoreCase = true) && !it.contains("GitHub", ignoreCase = true) }
+                ?: "فشل تثبيت التحديث"
             _updateState.value = UpdateState.Error(msg)
         }
     }
 
     fun dismiss() {
+        val current = _updateState.value
+        if (current is UpdateState.Available && current.info.isMandatory) {
+            return
+        }
         _updateState.value = UpdateState.Idle
+    }
+
+    fun checkAutoUpdateIfEnabled() {
+        checkAutoUpdateOnLaunch()
     }
 
     fun setGithubRepo(repo: String) {

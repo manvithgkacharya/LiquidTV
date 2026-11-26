@@ -3,7 +3,7 @@ package com.liquidtv.app.updater
 import kotlinx.serialization.Serializable
 
 /**
- * Metadata for an available application update hosted on GitHub Releases or version.json.
+ * Metadata for an available application update hosted on SONIX-CONTROL or GitHub Releases.
  */
 @Serializable
 data class AppUpdateInfo(
@@ -13,7 +13,10 @@ data class AppUpdateInfo(
     val releaseNotes: String = "",
     val apkDownloadUrl: String,
     val apkSize: Long = 0L,
+    val sha256: String? = null,
     val publishedAt: String? = null,
+    val isMandatory: Boolean = false,
+    val source: String = "github",
 )
 
 /**

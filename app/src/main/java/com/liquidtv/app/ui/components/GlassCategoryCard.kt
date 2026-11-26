@@ -22,7 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.liquidtv.app.domain.model.Category
-import com.liquidtv.app.ui.theme.LiquidColors
+import com.liquidtv.app.ui.theme.AppTheme
 import com.liquidtv.app.ui.theme.LiquidTypography
 
 /**
@@ -53,9 +53,8 @@ fun GlassCategoryCard(
         label = "categoryCardScale",
     )
 
-    val borderColor = if (isFocused) LiquidColors.GlassBorderFocused else LiquidColors.GlassBorder
-
-    val accentColors = accentGradientFor(category.iconName)
+    val colors = AppTheme.colors
+    val accentColors = accentGradientFor(category.iconName, colors.accent, colors.waveTwo)
     val icon = iconForCategory(category.iconName)
 
     LiquidGlassSurface(
@@ -65,7 +64,8 @@ fun GlassCategoryCard(
             .height(140.dp)
             .focusable(interactionSource = interactionSource),
         cornerRadius = 20.dp,
-        borderColor = borderColor,
+        isFocused = isFocused,
+        isPressed = isPressed,
         onClick = onClick,
         interactionSource = interactionSource,
     ) {
@@ -108,15 +108,15 @@ fun GlassCategoryCard(
                     Text(
                         text = category.name,
                         style = LiquidTypography.TitleMedium,
-                        color = LiquidColors.TextPrimary,
+                        color = colors.text,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
                     )
                     Text(
-                        text = "${category.channelCount} channels",
+                        text = "${category.channelCount} قناة",
                         style = LiquidTypography.BodySmall,
-                        color = LiquidColors.TextSecondary,
+                        color = colors.textSecondary,
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -142,7 +142,7 @@ fun GlassCategoryCard(
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Returns a (primary, secondary) accent [Color] pair for the given iconName. */
-private fun accentGradientFor(iconName: String?): Pair<Color, Color> =
+private fun accentGradientFor(iconName: String?, fallbackPrimary: Color, fallbackSecondary: Color): Pair<Color, Color> =
     when (iconName?.lowercase()) {
         "sports"        -> Pair(Color(0xFF00C853), Color(0xFF1DE9B6))
         "news"          -> Pair(Color(0xFFD50000), Color(0xFFFF6D00))
@@ -154,7 +154,7 @@ private fun accentGradientFor(iconName: String?): Pair<Color, Color> =
         "cooking", "food"->Pair(Color(0xFFFF6D00), Color(0xFFFF8F00))
         "travel"        -> Pair(Color(0xFF00BCD4), Color(0xFF0091EA))
         "science", "tech"->Pair(Color(0xFF00B0FF), Color(0xFF1DE9B6))
-        else            -> Pair(LiquidColors.AccentBlue, Color(0xFF00B0FF))
+        else            -> Pair(fallbackPrimary, fallbackSecondary)
     }
 
 /** Maps an iconName string to a Material [ImageVector]. */

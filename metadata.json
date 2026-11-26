@@ -1,0 +1,6 @@
+{
+  "name": "LIQUID TV",
+  "description": "Professional Liquid Glass IPTV Player for Android TV, Google TV, phones, and tablets supporting Xtream Codes, M3U, EPG, and Media3.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

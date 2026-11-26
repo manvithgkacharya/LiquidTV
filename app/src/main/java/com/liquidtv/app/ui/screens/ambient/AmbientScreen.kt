@@ -4,19 +4,17 @@ import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LiveTv
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -55,9 +53,8 @@ fun AmbientScreen(
         } catch (_: Exception) {}
     }
 
-    // Time tracking
-    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
-    val dateFormat = remember { SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()) }
+    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
+    val dateFormat = remember { SimpleDateFormat("EEEE، d MMMM", Locale("ar")) }
     var currentTime by remember { mutableStateOf(timeFormat.format(Calendar.getInstance().time)) }
     var currentDate by remember { mutableStateOf(dateFormat.format(Calendar.getInstance().time)) }
 
@@ -70,7 +67,6 @@ fun AmbientScreen(
         }
     }
 
-    // Infinite ambient motion for floating glass spheres
     val infiniteTransition = rememberInfiniteTransition(label = "ambientMotion")
     val phase1 by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -91,11 +87,9 @@ fun AmbientScreen(
         label = "phase2",
     )
 
-    // OLED Burn-in pixel shift (shifts clock and UI subtly every minute)
     val burnInShiftX = (sin(phase1.toDouble()) * 18.0).dp
     val burnInShiftY = (cos(phase2.toDouble()) * 14.0).dp
 
-    // Theme color palette
     val (startColor, midColor, accentOrbColor) = when (uiState.theme.lowercase()) {
         "aurora" -> Triple(
             LiquidColors.AmbientAuroraStart,
@@ -130,6 +124,11 @@ fun AmbientScreen(
             .background(Color.Black)
             .focusRequester(focusRequester)
             .focusable()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onExit,
+            )
             .onKeyEvent { keyEvent ->
                 if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
                     onExit()
@@ -139,7 +138,6 @@ fun AmbientScreen(
                 }
             },
     ) {
-        // Deep Ambient Radial Background
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -152,7 +150,6 @@ fun AmbientScreen(
                 ),
         )
 
-        // Slow Floating Glass Orb 1
         Box(
             modifier = Modifier
                 .offset(
@@ -169,7 +166,6 @@ fun AmbientScreen(
                 ),
         )
 
-        // Slow Floating Glass Orb 2
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -187,9 +183,8 @@ fun AmbientScreen(
                 ),
         )
 
-        // Floating Favorite Channel Artworks (if available)
         if (uiState.favoriteChannels.isNotEmpty()) {
-            val featured = uiState.favoriteChannels.firstOrNull { it.logoUrl != null }
+            val featured = uiState.favoriteChannels.firstOrNull { !it.logoUrl.isNullOrBlank() }
             if (featured != null) {
                 Box(
                     modifier = Modifier
@@ -202,8 +197,10 @@ fun AmbientScreen(
                 ) {
                     LiquidGlassSurface(
                         cornerRadius = 24.dp,
-                        glassAlpha = 0.15f,
+                        glassAlpha = 0.45f,
                         borderAlpha = 0.25f,
+                        glassColor = Color(0xFF0E1624),
+                        borderColor = Color.White,
                     ) {
                         AsyncImage(
                             model = featured.logoUrl,
@@ -219,12 +216,11 @@ fun AmbientScreen(
             }
         }
 
-        // Minimalist Clock & Date Panel (Shifted for OLED burn-in prevention)
         if (uiState.clockVisible) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = 64.dp, bottom = 64.dp)
+                    .padding(start = 48.dp, bottom = 56.dp, end = 48.dp)
                     .offset(x = burnInShiftX, y = burnInShiftY),
             ) {
                 Text(
@@ -240,25 +236,26 @@ fun AmbientScreen(
             }
         }
 
-        // Exit Hint Pill at Top Right
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(36.dp),
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(24.dp),
         ) {
             LiquidGlassSurface(
                 cornerRadius = 20.dp,
-                glassAlpha = 0.10f,
-                borderAlpha = 0.15f,
+                glassAlpha = 0.45f,
+                borderAlpha = 0.20f,
+                glassColor = Color(0xFF0E1624),
+                borderColor = Color.White,
             ) {
                 Text(
-                    text = "Press any button to resume",
+                    text = "اضغط في أي مكان للعودة",
                     style = LiquidTypography.LabelSmall,
-                    color = Color.White.copy(alpha = 0.45f),
+                    color = Color.White.copy(alpha = 0.55f),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
         }
     }
 }
-

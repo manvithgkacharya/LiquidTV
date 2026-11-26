@@ -1,63 +1,44 @@
 # Liquid Glass Design System
 
-## Philosophy
+## Premium dark theme family
 
-The **Liquid Glass** design system in LIQUID TV translates the aesthetics of Apple's Liquid Glass material and Apple TV tvOS interface into native Jetpack Compose for television displays.
+LiquidTV provides ten coordinated dark palettes: Royal Sapphire, Emerald Prestige, Obsidian Gold, Ruby Royale, Atlantic Noir, Amethyst Elite, Titanium Luxe, Copper Imperial, Electric Indigo, and Rose Gold Noir.
 
-Rather than utilizing flat cards or generic Material Design rectangles, the application models optical properties of polished curved glass:
-- Translucent refraction surfaces.
-- Dynamic specular highlights along top and left incident edges.
-- Inner diffused shadows providing physical depth.
-- Fluid spring physics mimicking physical surface tension.
+Each theme defines a three-stop atmospheric background gradient, two soft wave colors, accent/focus colors, and dark card/panel tint colors. Theme IDs remain stable so existing saved selections continue to resolve. The default is Royal Sapphire.
 
----
+## Shared glass-card material
 
-## Color Palette
+All themes share one Liquid Glass material system; only its tint, accent glow, and border colors change.
 
-| Token | Hex / Value | Description |
-|---|---|---|
-| `DeepBlack` | `#000000` | True OLED black background |
-| `MidnightNavy` | `#080C14` | Atmospheric television background depth |
-| `GlassPrimary` | `26% White` | Standard card surface fill |
-| `GlassBorder` | `20% White` | Thin crisp perimeter rim |
-| `GlassBorderFocused` | `80% White` | Bright luminescent border on D-pad selection |
-| `AccentBlue` | `#3D9BE9` | Cool electric blue highlight |
-| `AccentViolet` | `#8B5CF6` | Secondary accent gradient |
-| `LiveRed` | `#FF3B30` | Pulsing broadcast indicator |
+| Layer | Default opacity |
+|---|---:|
+| Standard card glass fill | 12–14% |
+| Secondary glass surface | 8–10% |
+| Selected card fill | 18% |
+| Focused card fill | 20–22% |
+| Standard border | 22% |
+| Focus border | Up to 82% |
+| Top specular highlight | 45% source alpha, softened by the renderer |
 
----
+The fill alpha is applied literally. It is not amplified based on the theme, preventing cards from becoming opaque slabs and allowing the background gradient and ambient waves to remain visible through the glass.
 
-## Core Component: `LiquidGlassSurface`
+## Optical layers
 
-Located in `com.liquidtv.app.ui.components.LiquidGlassSurface`:
+1. **Translucent tinted glass bed** using the active theme's card tint.
+2. **Soft top reflection** for a polished glass edge.
+3. **Subtle lower depth gradient** for separation from the background.
+4. **Thin perimeter border** tinted by the active theme.
+5. **Low-intensity accent glow** around focused cards.
+6. **TV focus response**: a short scale-up, brighter border, and stronger glow without changing layout dimensions.
 
-```kotlin
-LiquidGlassSurface(
-    modifier = Modifier,
-    cornerRadius = 16.dp,
-    glassAlpha = 0.15f,
-    borderAlpha = 0.2f,
-    highlightAlpha = 0.35f,
-    isFocused = isFocused,
-) {
-    // Card contents
-}
-```
+## Shared component
 
-### Optical Layers Drawn via `DrawScope`
-1. **Translucent Glass Bed**: Rounded rectangle filled with `glassColor.copy(alpha = activeGlassAlpha)`.
-2. **Inner Ambient Shadow**: Vertical gradient fading to subtle dark scrim on the lower 40% of the surface.
-3. **Top Incident Refraction**: Vertical white gradient simulating overhead light hitting the upper rim.
-4. **Perimeter Rim**: Crisp 1dp stroke that smoothly brightens from 20% to 80% opacity when the TV remote focuses the element.
+`com.liquidtv.app.ui.components.LiquidGlassSurface` is the single material primitive used by category cards, channel cards, settings cards, and other glass surfaces. Preserve its focus, press, click, and interaction-source behavior when extending the theme system.
 
----
+## Signature navigation
 
-## Signature Feature: Mirror Bubble Navigation
+`MirrorBubbleNavigation` keeps its existing floating glass pill and animated selected bubble. Its palette continues to resolve from the active app theme.
 
-`com.liquidtv.app.ui.navigation.MirrorBubbleNavigation`
+## Scope
 
-A floating horizontal glass pill positioned at the top of the display. When moving between tabs (Home, Live TV, Categories, Languages, Countries, Favorites, Search, Settings):
-- The bubble's horizontal coordinate (`bubbleX`) and width (`bubbleWidth`) are tracked dynamically.
-- Movement utilizes `spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)`.
-- As the bubble glides into position, the active item icon scales up to 1.15× while inactive tabs remain elegantly translucent.
-
+The app theme is independent from the Ambient/screensaver theme. Changing an app theme must not rewrite Ambient preferences or alter playback, navigation, or data behavior.

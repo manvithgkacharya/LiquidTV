@@ -38,22 +38,19 @@ class CountriesViewModel @Inject constructor(
                 channelRepository.getAllCountries(),
                 channelRepository.getPlaylistInfo(),
             ) { countries, playlistInfo ->
-                val isLoading = playlistInfo.isLoading || (countries.isEmpty() && playlistInfo.lastRefreshed == 0L)
                 val message = if (playlistInfo.isLoading) {
-                    "Loading countries & streams (${(playlistInfo.loadingProgress * 100).toInt()}%)..."
+                    playlistInfo.statusMessage
+                        ?: "جارٍ مزامنة الدول (${(playlistInfo.loadingProgress * 100).toInt()}%)..."
                 } else null
                 CountriesUiState(
                     countries = countries,
-                    isLoading = isLoading,
+                    isLoading = playlistInfo.isLoading,
                     loadingMessage = message,
                 )
             }.catch {
                 _uiState.update { it.copy(isLoading = false) }
             }.collect { state ->
                 _uiState.value = state
-                if (state.countries.isEmpty() && !state.isLoading) {
-                    channelRepository.refreshPlaylists()
-                }
             }
         }
     }

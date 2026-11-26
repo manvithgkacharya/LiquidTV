@@ -28,7 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.liquidtv.app.ui.theme.LiquidColors
+import com.liquidtv.app.ui.theme.AppTheme
 import com.liquidtv.app.ui.theme.LiquidTypography
 
 /**
@@ -46,16 +46,18 @@ fun GlassDialog(
     visible: Boolean,
     title: String,
     message: String,
-    confirmLabel: String = "OK",
+    confirmLabel: String = "حسناً",
     cancelLabel: String? = null,
     icon: ImageVector? = null,
-    iconTint: Color = LiquidColors.AccentBlue,
+    iconTint: Color = Color.Unspecified,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     properties: DialogProperties = DialogProperties(usePlatformDefaultWidth = false),
 ) {
     if (!visible) return
 
+    val colors = AppTheme.colors
+    val resolvedIconTint = if (iconTint != Color.Unspecified) iconTint else colors.accent
     val confirmFocusRequester = remember { FocusRequester() }
 
     Dialog(
@@ -73,7 +75,7 @@ fun GlassDialog(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.55f)),
+                    .background(colors.dialogScrim),
                 contentAlignment = Alignment.Center,
             ) {
                 LiquidGlassSurface(
@@ -81,7 +83,9 @@ fun GlassDialog(
                         .widthIn(min = 320.dp, max = 500.dp)
                         .wrapContentHeight(),
                     cornerRadius = 24.dp,
-                    borderColor = LiquidColors.GlassBorderFocused,
+                    glassColor = colors.panel,
+                    glassAlpha = 0.94f,
+                    borderColor = colors.border,
                     onClick = { /* consume clicks */ },
                     interactionSource = remember { MutableInteractionSource() },
                 ) {
@@ -97,7 +101,7 @@ fun GlassDialog(
                             Icon(
                                 imageVector = icon,
                                 contentDescription = null,
-                                tint = iconTint,
+                                tint = resolvedIconTint,
                                 modifier = Modifier.size(48.dp),
                             )
                         }
@@ -106,7 +110,7 @@ fun GlassDialog(
                         Text(
                             text = title,
                             style = LiquidTypography.TitleMedium,
-                            color = LiquidColors.TextPrimary,
+                            color = colors.text,
                             textAlign = TextAlign.Center,
                         )
 
@@ -114,7 +118,7 @@ fun GlassDialog(
                         Text(
                             text = message,
                             style = LiquidTypography.BodySmall,
-                            color = LiquidColors.TextSecondary,
+                            color = colors.textSecondary,
                             textAlign = TextAlign.Center,
                         )
 
@@ -169,7 +173,7 @@ fun GlassDialog(
 @Composable
 fun GlassLoadingDialog(
     visible: Boolean,
-    message: String = "Loading…",
+    message: String = "جارٍ التحميل...",
     onDismiss: () -> Unit = {},
     properties: DialogProperties = DialogProperties(
         dismissOnBackPress = false,
@@ -178,6 +182,7 @@ fun GlassLoadingDialog(
     ),
 ) {
     if (!visible) return
+    val colors = AppTheme.colors
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -191,7 +196,7 @@ fun GlassLoadingDialog(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.50f)),
+                    .background(colors.dialogScrim),
                 contentAlignment = Alignment.Center,
             ) {
                 LiquidGlassSurface(
@@ -199,7 +204,9 @@ fun GlassLoadingDialog(
                         .width(280.dp)
                         .wrapContentHeight(),
                     cornerRadius = 24.dp,
-                    borderColor = LiquidColors.GlassBorderFocused,
+                    glassColor = colors.panel,
+                    glassAlpha = 0.94f,
+                    borderColor = colors.border,
                     onClick = {},
                     interactionSource = remember { MutableInteractionSource() },
                 ) {
@@ -215,7 +222,7 @@ fun GlassLoadingDialog(
                         Text(
                             text = message,
                             style = LiquidTypography.BodySmall,
-                            color = LiquidColors.TextSecondary,
+                            color = colors.textSecondary,
                             textAlign = TextAlign.Center,
                         )
                     }
@@ -237,12 +244,14 @@ private fun GlassButton(
     modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val focusedColor = if (isPrimary) LiquidColors.AccentBlue else LiquidColors.GlassBorderFocused
+    val colors = AppTheme.colors
 
     LiquidGlassSurface(
         modifier = modifier.height(48.dp),
         cornerRadius = 12.dp,
-        borderColor = if (isPrimary) LiquidColors.AccentBlue.copy(alpha = 0.7f) else LiquidColors.GlassBorder,
+        glassColor = if (isPrimary) colors.accent else colors.surface,
+        glassAlpha = if (isPrimary) 0.95f else 0.85f,
+        borderColor = if (isPrimary) colors.accent else colors.border,
         onClick = onClick,
         interactionSource = interactionSource,
     ) {
@@ -253,7 +262,7 @@ private fun GlassButton(
             Text(
                 text = label,
                 style = LiquidTypography.TitleMedium,
-                color = if (isPrimary) LiquidColors.AccentBlue else LiquidColors.TextPrimary,
+                color = if (isPrimary) colors.onAccent else colors.text,
             )
         }
     }

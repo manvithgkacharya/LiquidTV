@@ -1,38 +1,49 @@
 package com.liquidtv.app.ui.screens.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.liquidtv.app.data.sonix.SonixSyncState
+import com.liquidtv.app.data.worker.PlaylistSyncWorker
+import com.liquidtv.app.domain.model.Category
+import com.liquidtv.app.domain.model.MediaType
+import com.liquidtv.app.domain.model.Subscription
 import com.liquidtv.app.domain.repository.ChannelRepository
+import com.liquidtv.app.domain.repository.SonixControlRepository
+import com.liquidtv.app.domain.repository.SubscriptionRepository
 import com.liquidtv.app.domain.repository.UserPreferencesRepository
+import com.liquidtv.app.ui.theme.AppThemeCatalog
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.update
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SettingsUiState(
+    val activeSubscription: Subscription? = null,
+    val sonixState: SonixSyncState = SonixSyncState(),
+    val categories: List<Category> = emptyList(),
     // Playback preferences
     val defaultQuality: String = "Auto",
     val autoPlay: Boolean = true,
     val subtitlesEnabled: Boolean = false,
     val preferredSubtitleLanguage: String = "en",
     // UI preferences
-    val theme: String = "dark",
+    val appTheme: String = AppThemeCatalog.DEFAULT_THEME_ID,
+    val theme: String = "midnight_glass",
     val clockVisible: Boolean = true,
-    val screenSaverTimeout: Int = 5, // minutes
+    val ambientEnabled: Boolean = true,
+    val screenSaverTimeout: Int = 5,
     // Playlist / network
-    val playlistUrl: String = "",
     val autoRefreshEnabled: Boolean = true,
-    val autoRefreshInterval: Int = 24, // hours
-    val connectionTimeout: Int = 15, // seconds
+    val autoRefreshInterval: Int = 24,
+    val connectionTimeout: Int = 15,
     val maxRetries: Int = 3,
     // Parental controls
     val parentalControlEnabled: Boolean = false,
+    val hasParentalPin: Boolean = false,
     // Updates & GitHub
-    val githubRepo: String = "your-github-username/LiquidTV",
+    val githubRepo: String = "kyanik010/LiquidTV",
     val autoCheckUpdates: Boolean = true,
     // State
     val isLoading: Boolean = false,
@@ -43,8 +54,11 @@ data class SettingsUiState(
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val channelRepository: ChannelRepository,
+    private val subscriptionRepository: SubscriptionRepository,
+    private val sonixControlRepository: SonixControlRepository? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -56,30 +70,41 @@ class SettingsViewModel @Inject constructor(
 
     private fun loadPreferences() {
         viewModelScope.launch {
-            userPreferencesRepository.userPreferences
-                .catch { _uiState.update { it.copy(isLoading = false) } }
-                .collect { prefs ->
-                    _uiState.update { state ->
-                        state.copy(
-                            defaultQuality = prefs.defaultQuality,
-                            autoPlay = prefs.autoPlay,
-                            subtitlesEnabled = prefs.subtitlesEnabled,
-                            preferredSubtitleLanguage = prefs.preferredSubtitleLanguage,
-                            theme = prefs.theme,
-                            clockVisible = prefs.clockVisible,
-                            screenSaverTimeout = prefs.screenSaverTimeout,
-                            playlistUrl = prefs.playlistUrl,
-                            autoRefreshEnabled = prefs.autoRefreshEnabled,
-                            autoRefreshInterval = prefs.autoRefreshInterval,
-                            connectionTimeout = prefs.connectionTimeout,
-                            maxRetries = prefs.maxRetries,
-                            parentalControlEnabled = prefs.parentalControlEnabled,
-                            githubRepo = prefs.githubRepo,
-                            autoCheckUpdates = prefs.autoCheckUpdates,
-                            isLoading = false,
-                        )
-                    }
-                }
+            val sonixFlow = sonixControlRepository?.state ?: MutableStateFlow(SonixSyncState())
+            combine(
+                userPreferencesRepository.userPreferences,
+                subscriptionRepository.activeSubscription,
+                channelRepository.getAllCategories(MediaType.LIVE),
+                sonixFlow,
+            ) { prefs, sub, categories, sonix ->
+                _uiState.value.copy(
+                    activeSubscription = sub,
+                    sonixState = sonix,
+                    categories = categories,
+                    defaultQuality = prefs.defaultQuality,
+                    autoPlay = prefs.autoPlay,
+                    subtitlesEnabled = prefs.subtitlesEnabled,
+                    preferredSubtitleLanguage = prefs.preferredSubtitleLanguage,
+                    appTheme = AppThemeCatalog.resolve(prefs.appTheme).id,
+                    theme = prefs.theme,
+                    clockVisible = prefs.clockVisible,
+                    ambientEnabled = prefs.ambientEnabled,
+                    screenSaverTimeout = prefs.screenSaverTimeout,
+                    autoRefreshEnabled = prefs.autoRefreshEnabled,
+                    autoRefreshInterval = prefs.autoRefreshInterval,
+                    connectionTimeout = prefs.connectionTimeout,
+                    maxRetries = prefs.maxRetries,
+                    parentalControlEnabled = prefs.parentalControlEnabled,
+                    hasParentalPin = prefs.hasParentalPin,
+                    githubRepo = prefs.githubRepo,
+                    autoCheckUpdates = prefs.autoCheckUpdates,
+                    isLoading = false,
+                )
+            }.catch {
+                _uiState.update { it.copy(isLoading = false) }
+            }.collect { updated ->
+                _uiState.value = updated
+            }
         }
     }
 
@@ -88,111 +113,111 @@ class SettingsViewModel @Inject constructor(
     fun setDefaultQuality(quality: String) {
         viewModelScope.launch {
             userPreferencesRepository.setDefaultQuality(quality)
-            _uiState.update { it.copy(defaultQuality = quality) }
         }
     }
 
     fun setAutoPlay(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setAutoPlay(enabled)
-            _uiState.update { it.copy(autoPlay = enabled) }
         }
     }
 
     fun setSubtitlesEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setSubtitlesEnabled(enabled)
-            _uiState.update { it.copy(subtitlesEnabled = enabled) }
         }
     }
 
     fun setPreferredSubtitleLanguage(language: String) {
         viewModelScope.launch {
             userPreferencesRepository.setPreferredSubtitleLanguage(language)
-            _uiState.update { it.copy(preferredSubtitleLanguage = language) }
-        }
-    }
-
-    // --- UI ---
-
-    fun setTheme(theme: String) {
-        viewModelScope.launch {
-            userPreferencesRepository.setTheme(theme)
-            _uiState.update { it.copy(theme = theme) }
-        }
-    }
-
-    fun setClockVisible(visible: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setClockVisible(visible)
-            _uiState.update { it.copy(clockVisible = visible) }
-        }
-    }
-
-    fun setScreenSaverTimeout(minutes: Int) {
-        viewModelScope.launch {
-            userPreferencesRepository.setScreenSaverTimeout(minutes)
-            _uiState.update { it.copy(screenSaverTimeout = minutes) }
-        }
-    }
-
-    // --- Playlist / Network ---
-
-    fun setPlaylistUrl(url: String) {
-        viewModelScope.launch {
-            userPreferencesRepository.setPlaylistUrl(url)
-            _uiState.update { it.copy(playlistUrl = url) }
-        }
-    }
-
-    fun setAutoRefreshEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            userPreferencesRepository.setAutoRefreshEnabled(enabled)
-            _uiState.update { it.copy(autoRefreshEnabled = enabled) }
-        }
-    }
-
-    fun setAutoRefreshInterval(hours: Int) {
-        viewModelScope.launch {
-            userPreferencesRepository.setAutoRefreshInterval(hours)
-            _uiState.update { it.copy(autoRefreshInterval = hours) }
         }
     }
 
     fun setConnectionTimeout(seconds: Int) {
         viewModelScope.launch {
             userPreferencesRepository.setConnectionTimeout(seconds)
-            _uiState.update { it.copy(connectionTimeout = seconds) }
         }
     }
 
     fun setMaxRetries(retries: Int) {
         viewModelScope.launch {
             userPreferencesRepository.setMaxRetries(retries)
-            _uiState.update { it.copy(maxRetries = retries) }
         }
     }
 
-    // --- Parental Controls ---
+    // --- Appearance & Ambient ---
 
-    fun setParentalControlEnabled(enabled: Boolean) {
+    fun selectAppTheme(themeId: String) {
         viewModelScope.launch {
-            userPreferencesRepository.setParentalControlEnabled(enabled)
-            _uiState.update { it.copy(parentalControlEnabled = enabled) }
+            userPreferencesRepository.setAppTheme(themeId)
         }
     }
 
-    // --- Actions ---
+    fun setTheme(theme: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setTheme(theme)
+        }
+    }
+
+    fun setClockVisible(visible: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setClockVisible(visible)
+        }
+    }
+
+    fun setAmbientEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAmbientEnabled(enabled)
+        }
+    }
+
+    fun setScreenSaverTimeout(minutes: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setScreenSaverTimeout(minutes)
+        }
+    }
+
+    // --- Subscriptions & Auto-Sync ---
+
+    fun setAutoRefreshEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAutoRefreshEnabled(enabled)
+            PlaylistSyncWorker.schedule(context, enabled, _uiState.value.autoRefreshInterval)
+        }
+    }
+
+    fun setAutoRefreshInterval(hours: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAutoRefreshInterval(hours)
+            PlaylistSyncWorker.schedule(context, _uiState.value.autoRefreshEnabled, hours)
+        }
+    }
 
     fun refreshPlaylists() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, error = null, successMessage = null) }
-            val result = channelRepository.refreshPlaylists()
+            val result = subscriptionRepository.syncActiveSubscription()
             result.onSuccess {
-                _uiState.update { it.copy(isRefreshing = false, successMessage = "Playlists refreshed successfully") }
+                _uiState.update { it.copy(isRefreshing = false, successMessage = "تم تحديث قائمة الاشتراك بنجاح") }
             }.onFailure { throwable ->
                 _uiState.update {
-                    it.copy(isRefreshing = false, error = throwable.message ?: "Failed to refresh playlists")
+                    it.copy(isRefreshing = false, error = throwable.message ?: "فشل تحديث قائمة الاشتراك")
+                }
+            }
+        }
+    }
+
+    fun refreshEpg() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null, successMessage = null) }
+            val result = subscriptionRepository.syncActiveEpg()
+            result.onSuccess {
+                _uiState.update { it.copy(isRefreshing = false, successMessage = "تم تحديث دليل البرامج بنجاح") }
+            }.onFailure { throwable ->
+                runCatching { android.util.Log.w("SettingsViewModel", "refreshEpg failed", throwable) }
+                _uiState.update {
+                    it.copy(isRefreshing = false, error = "تعذر تحديث دليل البرامج حالياً، يرجى المحاولة لاحقاً.")
                 }
             }
         }
@@ -205,26 +230,83 @@ class SettingsViewModel @Inject constructor(
                 channelRepository.clearWatchHistory()
                 userPreferencesRepository.clearSearchHistory()
             }.onSuccess {
-                _uiState.update { it.copy(isLoading = false, successMessage = "Cache cleared successfully") }
+                _uiState.update { it.copy(isLoading = false, successMessage = "تم مسح سجل المشاهدة والبحث المؤقت") }
             }.onFailure { throwable ->
                 _uiState.update {
-                    it.copy(isLoading = false, error = throwable.message ?: "Failed to clear cache")
+                    it.copy(isLoading = false, error = throwable.message ?: "فشل مسح البيانات المؤقتة")
                 }
             }
         }
     }
 
+    // --- Parental Controls ---
+
+    suspend fun verifyParentalPin(pin: String): Boolean {
+        return userPreferencesRepository.verifyParentalPin(pin)
+    }
+
+    fun enableParentalWithPin(pin: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setParentalPin(pin)
+            userPreferencesRepository.setParentalControlEnabled(true)
+            _uiState.update { it.copy(successMessage = "تم تفعيل الرقابة الأبوية") }
+        }
+    }
+
+    fun updateParentalPin(newPin: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setParentalPin(newPin)
+            _uiState.update { it.copy(successMessage = "تم تحديث رمز الحماية") }
+        }
+    }
+
+    fun disableParentalControl() {
+        viewModelScope.launch {
+            userPreferencesRepository.setParentalControlEnabled(false)
+            _uiState.update { it.copy(successMessage = "تم إيقاف الرقابة الأبوية") }
+        }
+    }
+
+    fun toggleCategoryLocked(categoryName: String, currentlyLocked: Boolean) {
+        viewModelScope.launch {
+            channelRepository.setCategoryLocked(categoryName, !currentlyLocked)
+        }
+    }
+
+    // --- Updates ---
+
     fun setGithubRepo(repo: String) {
         viewModelScope.launch {
             userPreferencesRepository.setGithubRepo(repo)
-            _uiState.update { it.copy(githubRepo = repo) }
         }
     }
 
     fun setAutoCheckUpdates(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setAutoCheckUpdates(enabled)
-            _uiState.update { it.copy(autoCheckUpdates = enabled) }
+        }
+    }
+
+    fun syncWithControlPanel() {
+        val repo = sonixControlRepository ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null, successMessage = null) }
+            repo.syncNow(force = true)
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(isRefreshing = false, successMessage = "تم تحديث حالة الجهاز والإعدادات بنجاح")
+                    }
+                }
+                .onFailure { throwable ->
+                    runCatching { android.util.Log.w("SettingsViewModel", "syncWithControlPanel failed", throwable) }
+                    _uiState.update {
+                        it.copy(
+                            isRefreshing = false,
+                            error = throwable.message?.takeIf { msg -> !msg.contains("HTTP", ignoreCase = true) }
+                                ?: "تعذرت مزامنة الإعدادات حالياً، يرجى المحاولة لاحقاً.",
+                        )
+                    }
+                }
         }
     }
 

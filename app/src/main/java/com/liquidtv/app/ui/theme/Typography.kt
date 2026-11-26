@@ -1,162 +1,171 @@
 package com.liquidtv.app.ui.theme
 
+import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.liquidtv.app.R
 
-// Uses system sans-serif for compatibility; swap in a custom font if bundled
+val CairoFontFamily = FontFamily(
+    Font(R.font.cairo, FontWeight.Light),
+    Font(R.font.cairo, FontWeight.Normal),
+    Font(R.font.cairo, FontWeight.Medium),
+    Font(R.font.cairo, FontWeight.SemiBold),
+    Font(R.font.cairo, FontWeight.Bold),
+)
+
 object LiquidTypography {
-    private val SansFontFamily = FontFamily.SansSerif
+    private val AppFontFamily = CairoFontFamily
 
     // Display — hero text
     val DisplayLarge = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Light,
-        fontSize = 72.sp,
-        lineHeight = 80.sp,
-        letterSpacing = (-1).sp,
-        color = LiquidColors.TextPrimary,
+        fontSize = 64.sp,
+        lineHeight = 76.sp,
+        letterSpacing = (-0.5).sp,
     )
     val DisplayMedium = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Light,
-        fontSize = 52.sp,
-        lineHeight = 60.sp,
-        letterSpacing = (-0.5).sp,
-        color = LiquidColors.TextPrimary,
+        fontSize = 46.sp,
+        lineHeight = 56.sp,
+        letterSpacing = 0.sp,
     )
 
     // Headlines
     val HeadlineLarge = TextStyle(
-        fontFamily = SansFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 36.sp,
-        lineHeight = 44.sp,
+        fontFamily = AppFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 42.sp,
         letterSpacing = 0.sp,
-        color = LiquidColors.TextPrimary,
     )
     val HeadlineMedium = TextStyle(
-        fontFamily = SansFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 28.sp,
+        fontFamily = AppFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 26.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp,
-        color = LiquidColors.TextPrimary,
     )
     val HeadlineSmall = TextStyle(
-        fontFamily = SansFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 22.sp,
-        lineHeight = 30.sp,
-        letterSpacing = 0.sp,
-        color = LiquidColors.TextPrimary,
-    )
-
-    // Title
-    val TitleLarge = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 20.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp,
-        color = LiquidColors.TextPrimary,
+    )
+
+    // Title
+    val TitleLarge = TextStyle(
+        fontFamily = AppFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 19.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp,
     )
     val TitleMedium = TextStyle(
-        fontFamily = SansFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.15.sp,
-        color = LiquidColors.TextPrimary,
+        fontFamily = AppFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 15.sp,
+        lineHeight = 22.sp,
+        letterSpacing = 0.sp,
     )
     val TitleSmall = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp,
-        color = LiquidColors.TextSecondary,
+        fontSize = 13.sp,
+        lineHeight = 19.sp,
+        letterSpacing = 0.sp,
     )
 
     // Body
     val BodyLarge = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
+        fontSize = 15.sp,
         lineHeight = 24.sp,
-        letterSpacing = 0.5.sp,
-        color = LiquidColors.TextSecondary,
+        letterSpacing = 0.sp,
     )
     val BodyMedium = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
+        fontSize = 13.sp,
         lineHeight = 20.sp,
-        letterSpacing = 0.25.sp,
-        color = LiquidColors.TextSecondary,
+        letterSpacing = 0.sp,
     )
     val BodySmall = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.4.sp,
-        color = LiquidColors.TextTertiary,
+        lineHeight = 18.sp,
+        letterSpacing = 0.sp,
     )
 
     // Label
     val LabelLarge = TextStyle(
-        fontFamily = SansFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp,
-        color = LiquidColors.TextPrimary,
+        fontFamily = AppFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.sp,
     )
     val LabelMedium = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.5.sp,
-        color = LiquidColors.TextSecondary,
+        letterSpacing = 0.sp,
     )
     val LabelSmall = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 10.sp,
         lineHeight = 14.sp,
-        letterSpacing = 0.5.sp,
-        color = LiquidColors.TextTertiary,
+        letterSpacing = 0.sp,
     )
 
     // Navigation
     val NavLabel = TextStyle(
-        fontFamily = SansFontFamily,
+        fontFamily = AppFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 13.sp,
+        fontSize = 12.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.5.sp,
+        letterSpacing = 0.sp,
     )
 
     // Clock / ambient
     val ClockLarge = TextStyle(
-        fontFamily = SansFontFamily,
-        fontWeight = FontWeight.Thin,
-        fontSize = 96.sp,
-        lineHeight = 100.sp,
-        letterSpacing = (-4).sp,
-        color = LiquidColors.TextPrimary,
+        fontFamily = AppFontFamily,
+        fontWeight = FontWeight.Light,
+        fontSize = 90.sp,
+        lineHeight = 96.sp,
+        letterSpacing = (-2).sp,
     )
     val ClockSmall = TextStyle(
-        fontFamily = SansFontFamily,
-        fontWeight = FontWeight.Light,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
-        letterSpacing = 2.sp,
-        color = LiquidColors.TextSecondary,
+        fontFamily = AppFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 22.sp,
+        lineHeight = 30.sp,
+        letterSpacing = 0.sp,
     )
 }
 
+val LiquidMaterialTypography = Typography(
+    displayLarge = LiquidTypography.DisplayLarge,
+    displayMedium = LiquidTypography.DisplayMedium,
+    headlineLarge = LiquidTypography.HeadlineLarge,
+    headlineMedium = LiquidTypography.HeadlineMedium,
+    headlineSmall = LiquidTypography.HeadlineSmall,
+    titleLarge = LiquidTypography.TitleLarge,
+    titleMedium = LiquidTypography.TitleMedium,
+    titleSmall = LiquidTypography.TitleSmall,
+    bodyLarge = LiquidTypography.BodyLarge,
+    bodyMedium = LiquidTypography.BodyMedium,
+    bodySmall = LiquidTypography.BodySmall,
+    labelLarge = LiquidTypography.LabelLarge,
+    labelMedium = LiquidTypography.LabelMedium,
+    labelSmall = LiquidTypography.LabelSmall,
+)

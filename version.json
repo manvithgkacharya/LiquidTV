@@ -1,7 +1,7 @@
 {
-  "versionName": "1.0.2",
-  "versionCode": 3,
-  "releaseTitle": "LIQUID TV v1.0.2 — Glass Polish & Ultra Stream",
-  "changelog": "- ✨ New Ultra Glass TV branding badge\n- 🚀 Lightning fast stream buffering\n- 🛡️ Seamless OTA in-app updater verified",
-  "apkUrl": "https://github.com/manvithgkacharya/LiquidTV/releases/download/v1.0.2/app-debug.apk"
+  "versionName": "1.1.0",
+  "versionCode": 4,
+  "releaseTitle": "LIQUID TV v1.1.0 — Production IPTV Engine",
+  "changelog": "- Real Xtream Codes & M3U subscription login with multi-account isolation\n- Movies (VOD), Series & Seasons, XMLTV EPG, and Audio/Subtitle track selection\n- Unified Media3 playback service, exponential backoff retries, parental PIN, and secure OTA updates",
+  "apkUrl": "https://github.com/kyanik010/LiquidTV/releases/download/v1.1.0/app-debug.apk"
 }

@@ -38,22 +38,19 @@ class LanguagesViewModel @Inject constructor(
                 channelRepository.getAllLanguages(),
                 channelRepository.getPlaylistInfo(),
             ) { languages, playlistInfo ->
-                val isLoading = playlistInfo.isLoading || (languages.isEmpty() && playlistInfo.lastRefreshed == 0L)
                 val message = if (playlistInfo.isLoading) {
-                    "Loading languages & streams (${(playlistInfo.loadingProgress * 100).toInt()}%)..."
+                    playlistInfo.statusMessage
+                        ?: "جارٍ مزامنة اللغات (${(playlistInfo.loadingProgress * 100).toInt()}%)..."
                 } else null
                 LanguagesUiState(
                     languages = languages,
-                    isLoading = isLoading,
+                    isLoading = playlistInfo.isLoading,
                     loadingMessage = message,
                 )
             }.catch {
                 _uiState.update { it.copy(isLoading = false) }
             }.collect { state ->
                 _uiState.value = state
-                if (state.languages.isEmpty() && !state.isLoading) {
-                    channelRepository.refreshPlaylists()
-                }
             }
         }
     }

@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
@@ -22,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.liquidtv.app.ui.theme.LiquidColors
+import com.liquidtv.app.ui.theme.AppTheme
 import com.liquidtv.app.ui.theme.LiquidTypography
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,13 +29,11 @@ import com.liquidtv.app.ui.theme.LiquidTypography
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Pulsing red LIVE indicator pill badge.
- *
- * Contains a small blinking dot and "LIVE" text.  The dot pulses between
- * full and reduced alpha via an [InfiniteTransition].
+ * Pulsing LIVE indicator pill badge using theme danger/onDanger tokens.
  */
 @Composable
 fun LiveBadge(modifier: Modifier = Modifier) {
+    val colors = AppTheme.colors
     val infiniteTransition = rememberInfiniteTransition(label = "livePulse")
     val dotAlpha by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -54,12 +51,12 @@ fun LiveBadge(modifier: Modifier = Modifier) {
             .background(
                 Brush.horizontalGradient(
                     listOf(
-                        LiquidColors.LiveRed.copy(alpha = 0.92f),
-                        Color(0xFFFF2D55).copy(alpha = 0.88f),
+                        colors.danger.copy(alpha = 0.94f),
+                        colors.danger.copy(alpha = 0.84f),
                     )
                 )
             )
-            .border(0.8.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(50))
+            .border(0.8.dp, colors.onDanger.copy(alpha = 0.35f), RoundedCornerShape(50))
             .padding(horizontal = 7.dp, vertical = 3.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -67,18 +64,17 @@ fun LiveBadge(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            // Pulsing dot with subtle glow
             Box(
                 modifier = Modifier
                     .size(6.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = dotAlpha)),
+                    .background(colors.onDanger.copy(alpha = dotAlpha)),
             )
 
             Text(
-                text = "LIVE",
+                text = "مباشر",
                 style = LiquidTypography.LabelSmall,
-                color = Color.White,
+                color = colors.onDanger,
             )
         }
     }
@@ -88,27 +84,17 @@ fun LiveBadge(modifier: Modifier = Modifier) {
 // TVFocusIndicator
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Wraps [content] in a [Box] that paints a glass-style focus ring whenever the
- * inner content (or this wrapper itself) is focused.
- *
- * Usage:
- * ```
- * TVFocusIndicator(cornerRadius = 16.dp) {
- *     MyFocusableContent()
- * }
- * ```
- */
 @Composable
 fun TVFocusIndicator(
     cornerRadius: Dp = 16.dp,
-    focusBorderColor: Color = LiquidColors.GlassBorderFocused,
+    focusBorderColor: Color = Color.Unspecified,
     focusBorderWidth: Dp = 2.dp,
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val resolvedFocusBorder = if (focusBorderColor != Color.Unspecified) focusBorderColor else AppTheme.colors.focus
 
     val animatedAlpha by animateFloatAsState(
         targetValue = if (isFocused) 1f else 0f,
@@ -128,7 +114,7 @@ fun TVFocusIndicator(
             .then(
                 if (isFocused) {
                     Modifier.border(
-                        border = BorderStroke(focusBorderWidth, focusBorderColor.copy(alpha = animatedAlpha)),
+                        border = BorderStroke(focusBorderWidth, resolvedFocusBorder.copy(alpha = animatedAlpha)),
                         shape = RoundedCornerShape(cornerRadius),
                     )
                 } else Modifier,
@@ -137,14 +123,10 @@ fun TVFocusIndicator(
     )
 }
 
-/**
- * [Modifier] extension that adds a glass focus ring to any composable.
- * Relies on the provided [MutableInteractionSource] for focus tracking.
- */
 fun Modifier.glassFocusRing(
     isFocused: Boolean,
     cornerRadius: Dp = 16.dp,
-    borderColor: Color = LiquidColors.GlassBorderFocused,
+    borderColor: Color = Color.White,
     borderWidth: Dp = 2.dp,
 ): Modifier = this.then(
     if (isFocused) {
@@ -159,39 +141,22 @@ fun Modifier.glassFocusRing(
 // LoadingSpinner
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Animated circular loading indicator styled to match the glass design system.
- *
- * @param size Overall diameter of the spinner.
- * @param strokeWidth Width of the circular arc stroke.
- * @param color Spinner arc colour; defaults to [LiquidColors.AccentBlue].
- * @param trackColor Background ring colour.
- */
 @Composable
 fun LoadingSpinner(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
     strokeWidth: Dp = 4.dp,
-    color: Color = LiquidColors.AccentBlue,
-    trackColor: Color = LiquidColors.GlassBorder,
+    color: Color = Color.Unspecified,
+    trackColor: Color = Color.Unspecified,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "spinnerRotation")
-
-    // Sweep angle oscillates to create an expanding/contracting arc effect
-    val sweepAngle by infiniteTransition.animateFloat(
-        initialValue = 30f,
-        targetValue = 280f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 900, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "spinnerSweep",
-    )
+    val colors = AppTheme.colors
+    val resolvedColor = if (color != Color.Unspecified) color else colors.accent
+    val resolvedTrack = if (trackColor != Color.Unspecified) trackColor else colors.border.copy(alpha = 0.45f)
 
     CircularProgressIndicator(
         modifier = modifier.size(size),
-        color = color,
-        trackColor = trackColor,
+        color = resolvedColor,
+        trackColor = resolvedTrack,
         strokeWidth = strokeWidth,
         strokeCap = StrokeCap.Round,
     )

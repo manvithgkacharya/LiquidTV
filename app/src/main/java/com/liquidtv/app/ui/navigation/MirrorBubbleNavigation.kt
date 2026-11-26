@@ -1,14 +1,17 @@
 package com.liquidtv.app.ui.navigation
 
+import androidx.annotation.StringRes
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -27,26 +30,28 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.liquidtv.app.ui.theme.LiquidColors
+import com.liquidtv.app.R
+import com.liquidtv.app.ui.theme.AppTheme
 import com.liquidtv.app.ui.theme.LiquidTypography
 
 /**
  * Navigation destinations mapped to the Mirror Bubble nav bar.
  */
 enum class NavDestination(
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
 ) {
-    Home("Home", Icons.Default.Home),
-    LiveTV("Live TV", Icons.Default.LiveTv),
-    Categories("Categories", Icons.Default.GridView),
-    Languages("Languages", Icons.Default.Language),
-    Countries("Countries", Icons.Default.Public),
-    Favorites("Favorites", Icons.Default.Favorite),
-    Search("Search", Icons.Default.Search),
-    Settings("Settings", Icons.Default.Settings),
+    Home(R.string.nav_home, Icons.Default.Home),
+    LiveTV(R.string.nav_live_tv, Icons.Default.LiveTv),
+    Movies(R.string.nav_movies, Icons.Default.Movie),
+    Series(R.string.nav_series, Icons.Default.VideoLibrary),
+    Categories(R.string.nav_categories, Icons.Default.GridView),
+    Favorites(R.string.nav_favorites, Icons.Default.Favorite),
+    Search(R.string.nav_search, Icons.Default.Search),
+    Settings(R.string.nav_settings, Icons.Default.Settings),
 }
 
 private val NAV_ITEMS = NavDestination.entries
@@ -60,11 +65,16 @@ fun MirrorBubbleNavigation(
     onDestinationSelected: (NavDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
+    val colors = AppTheme.colors
+    val isLight = colors.isLight
+
     // Outer glass pill
     Box(
         modifier = modifier
+            .padding(horizontal = 12.dp)
             .wrapContentWidth()
-            .height(64.dp)
+            .height(56.dp)
             .drawBehind {
                 val w = size.width
                 val h = size.height
@@ -72,21 +82,21 @@ fun MirrorBubbleNavigation(
 
                 // Subtle ambient glow behind the nav pill
                 drawRoundRect(
-                    color = LiquidColors.AccentBlue.copy(alpha = 0.10f),
+                    color = colors.accent.copy(alpha = if (isLight) 0.14f else 0.12f),
                     topLeft = Offset(-4.dp.toPx(), -2.dp.toPx()),
                     size = Size(w + 8.dp.toPx(), h + 4.dp.toPx()),
                     cornerRadius = CornerRadius(cr + 4.dp.toPx()),
                 )
 
-                // Glass fill
+                // Theme-tinted glass pill fill
                 drawRoundRect(
-                    color = Color.White.copy(alpha = 0.12f),
+                    color = colors.panel.copy(alpha = if (isLight) 0.90f else 0.80f),
                     cornerRadius = CornerRadius(cr),
                 )
                 // Top specular highlight
                 drawRoundRect(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.26f), Color.Transparent),
+                        colors = listOf(Color.White.copy(alpha = if (isLight) 0.55f else 0.18f), Color.Transparent),
                         startY = 0f,
                         endY = h * 0.45f,
                     ),
@@ -94,7 +104,7 @@ fun MirrorBubbleNavigation(
                 )
                 // Border
                 drawRoundRect(
-                    color = Color.White.copy(alpha = 0.25f),
+                    color = colors.border.copy(alpha = if (isLight) 0.72f else 0.55f),
                     cornerRadius = CornerRadius(cr),
                     style = Stroke(width = 1.2.dp.toPx()),
                 )
@@ -105,8 +115,10 @@ fun MirrorBubbleNavigation(
         Row(
             modifier = Modifier
                 .wrapContentWidth()
+                .horizontalScroll(scrollState)
                 .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             NAV_ITEMS.forEach { destination ->
                 NavTab(
@@ -125,23 +137,20 @@ private fun NavTab(
     isSelected: Boolean,
     onSelected: () -> Unit,
 ) {
+    val colors = AppTheme.colors
+    val isLight = colors.isLight
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val labelText = stringResource(destination.labelRes)
 
     val iconScale by animateFloatAsState(
-        targetValue = if (isSelected) 1.18f else if (isFocused) 1.1f else 1f,
+        targetValue = if (isSelected) 1.15f else if (isFocused) 1.08f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
         label = "iconScale_${destination.name}",
     )
 
-    val tabWidth: Dp by animateDpAsState(
-        targetValue = if (isSelected) 110.dp else if (isFocused) 72.dp else 56.dp,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-        label = "tabWidth_${destination.name}",
-    )
-
     val bubbleAlpha by animateFloatAsState(
-        targetValue = if (isSelected) 1f else if (isFocused) 0.5f else 0f,
+        targetValue = if (isSelected) 1f else if (isFocused) 0.55f else 0f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
         label = "bubbleAlpha_${destination.name}",
     )
@@ -152,21 +161,29 @@ private fun NavTab(
         label = "labelAlpha_${destination.name}",
     )
 
+    val activeTint = if (isSelected) colors.text else if (isFocused) colors.accentText else colors.textSecondary
+
     Box(
         modifier = Modifier
-            .width(tabWidth)
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+            )
+            .widthIn(min = if (isSelected) 112.dp else if (isFocused) 64.dp else 50.dp)
             .height(48.dp)
             .drawBehind {
                 if (bubbleAlpha > 0.01f) {
                     val w = size.width
                     val h = size.height
                     val cr = h / 2f
-                    // Gradient fill for active bubble (blue into violet)
+                    // Gradient fill for active bubble tinted with theme selected + accent
                     drawRoundRect(
                         brush = Brush.horizontalGradient(
                             listOf(
-                                LiquidColors.AccentBlue.copy(alpha = 0.35f * bubbleAlpha),
-                                LiquidColors.AccentViolet.copy(alpha = 0.25f * bubbleAlpha),
+                                colors.selected.copy(alpha = (if (isLight) 0.92f else 0.85f) * bubbleAlpha),
+                                colors.accent.copy(alpha = (if (isLight) 0.28f else 0.24f) * bubbleAlpha),
                             )
                         ),
                         cornerRadius = CornerRadius(cr),
@@ -176,7 +193,7 @@ private fun NavTab(
                     drawRoundRect(
                         brush = Brush.verticalGradient(
                             colors = listOf(
-                                Color.White.copy(alpha = 0.45f * bubbleAlpha),
+                                Color.White.copy(alpha = (if (isLight) 0.50f else 0.26f) * bubbleAlpha),
                                 Color.Transparent,
                             ),
                             startY = 0f,
@@ -186,13 +203,13 @@ private fun NavTab(
                     )
                     // Border
                     drawRoundRect(
-                        color = LiquidColors.AccentBlue.copy(alpha = 0.85f * bubbleAlpha),
+                        color = (if (isFocused) colors.focus else colors.accent).copy(alpha = 0.88f * bubbleAlpha),
                         cornerRadius = CornerRadius(cr),
-                        style = Stroke(width = 1.2.dp.toPx()),
+                        style = Stroke(width = if (isFocused) 1.6.dp.toPx() else 1.2.dp.toPx()),
                     )
                     // Lens glint
                     drawCircle(
-                        color = Color.White.copy(alpha = 0.6f * bubbleAlpha),
+                        color = colors.accent.copy(alpha = 0.65f * bubbleAlpha),
                         radius = 3.dp.toPx(),
                         center = Offset(cr, cr * 0.5f),
                     )
@@ -204,30 +221,31 @@ private fun NavTab(
                 indication = null,
                 onClick = onSelected,
             )
-            .focusable(interactionSource = interactionSource),
+            .focusable(interactionSource = interactionSource)
+            .padding(horizontal = if (isSelected) 14.dp else 10.dp)
+            .testTag("nav_tab_${destination.name.lowercase()}"),
         contentAlignment = Alignment.Center,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Icon(
                 imageVector = destination.icon,
-                contentDescription = destination.label,
-                tint = if (isSelected) Color.White else if (isFocused) LiquidColors.AccentBlueLight else LiquidColors.IconInactive,
+                contentDescription = labelText,
+                tint = activeTint,
                 modifier = Modifier
                     .size(20.dp)
                     .scale(iconScale),
             )
-            if (labelAlpha > 0.01f) {
+            if (isSelected && labelAlpha > 0.01f) {
                 Text(
-                    text = destination.label,
-                    style = LiquidTypography.LabelSmall,
-                    color = Color.White.copy(alpha = labelAlpha),
+                    text = labelText,
+                    style = LiquidTypography.NavLabel,
+                    color = colors.text.copy(alpha = labelAlpha),
                     maxLines = 1,
                 )
             }
         }
     }
 }
-
